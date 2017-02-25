@@ -2,7 +2,7 @@ const margin = {top: 60, right: 50, bottom: 60, left: 80},
       width = 960 - margin.left - margin.right, //810
       height = 500 - margin.top - margin.bottom; //400
 
-//blue: rgb(66, 244, 244), green: rgb(66, 244, 66)
+//blue: rgb(66, 244, 170), green: rgb(66, 244, 66)
 const blue = 170;
 const green = 66;
 
@@ -34,7 +34,7 @@ let chart = d3.select(".chart")
               .append("g")
               .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-let toolTip = d3.select("body").append("div").attr("class", "toolTip");
+let toolTip = d3.select("body").append("div").attr("id", "toolTip");
 
 // Creates Date object based on raw data format
 let parseTime = d3.timeParse("%Y-%m-%d");
@@ -48,33 +48,24 @@ d3.json("https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/mas
     .attr("href", sourceUrl[0])
     .text(sourceUrl[0]);
 
-  // Defines the domain of the amount of blue in each bar as the range of values for GDP
-  barColor.domain([0, d3.max(json.data, (d) => {return d[1]; })]);
-
   // Parses the time entry into a JS Date object
   json.data.forEach((entry) => {
-    //console.log(entry[0]);
     entry[0] = parseTime(entry[0]);
-    //console.log(typeof entry[1]);
-    //console.log(barColor(entry[1]));
+    entry[1] = entry[1] / 1000;
   })
 
   // Defines the domain of the x-axis as the range of string values in the json
   x.domain(json.data.map((d) => { return d[0]; }));
   // Defines the domain of the y-axis as the range of values for GDP
-  y.domain([0, d3.max(json.data, (d) => { return d[1] / 1000; })]);
-
-  //console.log(x(json.data[0][0]));
-  json.data.forEach((entry) => {
-    //console.log(x(entry[0]));
-  })
+  y.domain([0, d3.max(json.data, (d) => { return d[1]; })]);
+  // Defines the domain of the amount of blue in each bar as the range of values for GDP
+  barColor.domain([0, d3.max(json.data, (d) => {return d[1]; })]);
 
   // x-Axis
   chart.append("g")
-       .attr("class", "x axis")
+       .attr("class", "x-axis axis")
        .attr("transform", "translate(0," + height + ")")
        .call(xAxis.tickValues(x.domain().filter((d) => { return d.getMonth() === 0 && !(d.getYear() % 5); })))
-       //.call(xAxis.tickValues(x.domain().filter((d,i) => { return !(i % 30); })))
        .append("text")
        .attr("class", "label")
        .attr("y", margin.bottom)
@@ -85,7 +76,7 @@ d3.json("https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/mas
 
   // y-Axis
   chart.append("g")
-       .attr("class", "y axis")
+       .attr("class", "y-axis axis")
        .call(yAxis)
        .append("text")
        .attr("class", "label")
@@ -99,31 +90,31 @@ d3.json("https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/mas
 
   // Chart Title
   chart.append("g").append("text")
-      .attr("class", "chart-title")
+      .attr("class", "title")
       .attr("x", width / 2)
       .attr("y", 0 - (margin.top / 2))
       .attr("fill", "#000")
       .style("text-anchor", "middle")
-      .text("Growth of the United States Gross Domestic Product");
+      .text("Growth of the United States Nominal Gross Domestic Product");
 
-  // Data mapped to chart svg
-  chart.selectAll(".nominal-bar")
+  // Data mapped to chart SVG
+  chart.selectAll(".bar")
        .data(json.data)
        .enter().append("rect")
-       .attr("class", "nominal-bar")
        .attr("class", "bar")
        .attr("x", (d) => { return x(d[0]); })
-       .attr("y", (d) => { return y(d[1] / 1000); })
-       .attr("height", (d) => { return height - y(d[1] / 1000); })
+       .attr("y", (d) => { return y(d[1]); })
+       .attr("height", (d) => { return height - y(d[1]); })
        .attr("width", x.bandwidth())
-       .style("fill", (d) => {return "rgb(66, 244, " + Math.floor(barColor(d[1])) + ")";})
+       .property("data-date", (d) => { return d[0]; })
+       .property("data-gdp", (d) => { return d[1]; })
+       .style("fill", (d) => { return "rgb(66, 244, " + Math.floor(barColor(d[1])) + ")";})
        .on("mouseover", function(d) {
-         console.log(d);
          toolTip
           .style("left", d3.event.pageX - 66 + "px")
           .style("top", d3.event.pageY - 80 + "px")
           .style("display", "block")
-          .html(tipFormatTime(d[0]) + "<br>" + "$" + (d[1] / 1000).toPrecision(4) + " Trillion");
+          .html(tipFormatTime(d[0]) + "<br>" + "$" + (d[1]).toPrecision(4) + " Trillion");
        })
        .on("mouseout", () => {
          toolTip.style("display", "none");

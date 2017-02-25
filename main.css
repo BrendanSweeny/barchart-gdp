@@ -34,11 +34,11 @@ p {
   fill: #0AB20A !important;
 }
 
-.chart-title {
+.title {
   font-size: 2em;
 }
 
-.toolTip {
+#toolTip {
   position: absolute;
   display: none;
   min-width: 80px;
@@ -49,5 +49,5 @@ p {
   text-align: center;
   color: black;
   pointer-events: none;
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.7);
 }
